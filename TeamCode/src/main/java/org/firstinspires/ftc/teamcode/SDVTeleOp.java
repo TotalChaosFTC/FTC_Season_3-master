@@ -74,6 +74,8 @@ public class SDVTeleOp extends LinearOpMode {
     /* Declare OpMode members. */
     public DcMotor right;
     public DcMotor left;
+    public DcMotor gr;
+    public DcMotor gl;
     public Servo grab1;
     public Servo grab2;
     public Servo grab3;
@@ -106,12 +108,15 @@ public class SDVTeleOp extends LinearOpMode {
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        //left  = hardwareMap.get(DcMotor.class, "left");
-        //right = hardwareMap.get(DcMotor.class, "right");
-        grab1 = hardwareMap.get(Servo.class, "1");
-        grab2 = hardwareMap.get(Servo.class, "2");
-        grab3 = hardwareMap.get(Servo.class, "3");
-        grab4 = hardwareMap.get(Servo.class, "4");
+        left  = hardwareMap.get(DcMotor.class, "left");
+        right = hardwareMap.get(DcMotor.class, "right");
+        gr = hardwareMap.get(DcMotor.class, "gr");
+        gl = hardwareMap.get(DcMotor.class, "gl");
+
+        //grab1 = hardwareMap.get(Servo.class, "1");
+        //grab2 = hardwareMap.get(Servo.class, "2");
+        //grab3 = hardwareMap.get(Servo.class, "3");
+        //grab4 = hardwareMap.get(Servo.class, "4");
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -123,10 +128,24 @@ public class SDVTeleOp extends LinearOpMode {
 
 
             double position = 0;
-            leftJoy = gamepad1.left_stick_y/10;
-            rightJoy = gamepad1.right_stick_y/10;
+            leftJoy = gamepad1.left_stick_y*0.5;
+            rightJoy = gamepad1.right_stick_y*0.5;
             left.setPower(leftJoy);
             right.setPower(rightJoy);
+
+            if(gamepad1.right_trigger > 0){
+                gr.setPower(1);
+                gl.setPower(-1);
+            }
+            else if(gamepad1.left_trigger > 0){
+                gr.setPower(-1);
+                gl.setPower(1);
+            }
+            else{
+                gr.setPower(0);
+                gl.setPower(0);
+            }
+
             /*grab1.setPosition(-position);
             grab2.setPosition(position);
             grab3.setPosition(-position);
@@ -162,8 +181,6 @@ public class SDVTeleOp extends LinearOpMode {
                 telemetry.update();
             }
 
-            telemetry.addData("left",  "%.2f", leftJoy);
-            telemetry.addData("right", "%.2f", rightJoy);
             telemetry.update();
 
             // Pause for 40 mS each cycle = update 25 times a second.
