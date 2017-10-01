@@ -1,3 +1,4 @@
+package org.firstinspires.ftc.teamcode.PrototypeRobot;
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -27,7 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -44,11 +52,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 /**
  * This OpMode uses the common HardwareK9bot class to define the devices on the robot.
@@ -67,20 +70,22 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="SDV: Telop Tank", group="SDV")
+@TeleOp(name="HDV: Telop Tank", group="HDV")
 //@Disabled
-public class SDVTeleOp extends LinearOpMode {
+public class PrototypeRobotTeleOp extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor right;
-    public DcMotor left;
-    public DcMotor gr;
-    public DcMotor gl;
+    public DcMotor rf;
+    public DcMotor lf;
+    public DcMotor rb;
+    public DcMotor lb;
+    //public DcMotor gr;
+    //public DcMotor gl;
     public Servo grab1;
     public Servo grab2;
     public Servo grab3;
     public Servo grab4;
-    VuforiaLocalizer vuforia;
+    public CRServo mover;
 
 
     @Override
@@ -88,102 +93,99 @@ public class SDVTeleOp extends LinearOpMode {
         double leftJoy;
         double rightJoy;
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-
-        parameters.vuforiaLicenseKey = "AYydEH3/////AAAAGXMATUMRIE4Pv8w0T+lHxs5Vah12gKSD60BBnydPYF3GeoUEUBpr9Q4NXikGwa+wLuElb3hZH2ujmFnni6yudqsshk91NxEEeOBZBscu60T3JbZVW05gvgAbxrAQgQRbMomuW3rFL/KhLVeOL+pb0k0DJEAsgTcoL7dahj1z/9tfrZC0vFDIW4qXsnzmjXRyT1MWXc8odL8npQI+FJZoyh8gpfGs6iuY6ZCi+QkjdlRIpsZnozIPCN5S9K1Zv8/3CnOmBz50I7x+fiZM9Soj3jbShvKQyfHRMTYX4b1DAspwJ6ekaU10UxtUeijN2pjfRv8jE857LRDmrBsuO6YBrlI9C49idhYLXADg8DlegTq4 ";
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-
-        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-        VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
-
-        telemetry.addData(">", "Press Play to start");
-        telemetry.update();
-        waitForStart();
-
-        relicTrackables.activate();
-
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        left  = hardwareMap.get(DcMotor.class, "left");
-        right = hardwareMap.get(DcMotor.class, "right");
-        gr = hardwareMap.get(DcMotor.class, "gr");
-        gl = hardwareMap.get(DcMotor.class, "gl");
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        lb = hardwareMap.get(DcMotor.class, "lb");
+        rb = hardwareMap.get(DcMotor.class, "rb");
 
-        //grab1 = hardwareMap.get(Servo.class, "1");
-        //grab2 = hardwareMap.get(Servo.class, "2");
-        //grab3 = hardwareMap.get(Servo.class, "3");
-        //grab4 = hardwareMap.get(Servo.class, "4");
+        //gr = hardwareMap.get(DcMotor.class, "gr");
+        //gl = hardwareMap.get(DcMotor.class, "gl");
 
+        grab1 = hardwareMap.get(Servo.class, "1");
+        grab2 = hardwareMap.get(Servo.class, "2");
+        grab3 = hardwareMap.get(Servo.class, "3");
+        grab4 = hardwareMap.get(Servo.class, "4");
+        mover = hardwareMap.get(CRServo.class, "5");
+
+        grab1.setPosition(1);
+        grab2.setPosition(1);
+        grab3.setPosition(1);
+        grab4.setPosition(1);
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            // Run wheels in tank mode (note: The joystick goes negative when pushed forwards, so negate it)
-
-
             double position = 0;
             leftJoy = gamepad1.left_stick_y*0.5;
-            rightJoy = gamepad1.right_stick_y*0.5;
-            left.setPower(leftJoy);
-            right.setPower(rightJoy);
+            rightJoy = -gamepad1.right_stick_y*0.5;
+            lf.setPower(leftJoy);
+            lb.setPower(leftJoy);
+            rf.setPower(rightJoy);
+            rb.setPower(rightJoy);
 
-            if(gamepad1.right_trigger > 0){
-                gr.setPower(1);
-                gl.setPower(-1);
-            }
-            else if(gamepad1.left_trigger > 0){
-                gr.setPower(-1);
-                gl.setPower(1);
-            }
-            else{
-                gr.setPower(0);
-                gl.setPower(0);
-            }
 
-            /*grab1.setPosition(-position);
-            grab2.setPosition(position);
-            grab3.setPosition(-position);
-            grab4.setPosition(position);
-             if(gamepad1.x){
-                 position = position + 20;
+
+            position = 0;
+             if(gamepad2.x){
+                 position = position + 0.7;
                 grab1.setPosition(-position);
                 grab2.setPosition(position);
                 grab3.setPosition(-position);
                 grab4.setPosition(position);
              }
-            else if(gamepad1.b){
-                position = position - 20;
+            else if(gamepad2.b){
+                position = position - 0.7;
                 grab1.setPosition(-position);
                 grab2.setPosition(position);
                 grab3.setPosition(-position);
                 grab4.setPosition(position);
-            }*/
-
-            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-
-
-                telemetry.addData("VuMark", "%s visible", vuMark);
-                telemetry.addData("Vu Foria has gotten a value","");
-                telemetry.update();
-
-                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener)relicTemplate.getListener()).getPose();
-
             }
-            else {
-                telemetry.addData("VuMark", "not visible");
-                telemetry.update();
+            if (gamepad2.right_bumper){
+                mover.setPower(1);
             }
-
-            telemetry.update();
-
-            // Pause for 40 mS each cycle = update 25 times a second.
+            else if(gamepad2.left_bumper){
+                mover.setPower(-1);
+            }
+            else{
+                mover.setPower(0);
+            }
         }
     }
 }
+
+/**
+ * Created by shreyesjoshi on 9/27/17.
+ *//* Copyright (c) 2017 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
