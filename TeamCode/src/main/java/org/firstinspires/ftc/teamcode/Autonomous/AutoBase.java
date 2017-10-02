@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.PrototypeRobot;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import android.util.Log;
 
@@ -24,7 +24,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * to reduce the frequency of the updates to the drive system.
  */
 @Autonomous(name="StraightLineDrive", group="SDV")
-public class AutoBase extends LinearOpMode {
+abstract public class AutoBase extends LinearOpMode {
     DcMotor backLeft;
     DcMotor backRight;
     DcMotor frontLeft;
@@ -103,14 +103,6 @@ public class AutoBase extends LinearOpMode {
             setLeftPower(speed);
             setRightPower(speed);
 
-
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
             navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
             while (opModeIsActive() && (frontLeft.isBusy() && frontRight.isBusy())) {
@@ -164,62 +156,18 @@ public class AutoBase extends LinearOpMode {
             //  sleep(250);   // optional pause after each move
         }
     }
-    @Override
-    public void runOpMode() throws InterruptedException {
-        frontRight = hardwareMap.get(DcMotor.class,"rf");
-        frontLeft = hardwareMap.get(DcMotor.class,"lf");
-        backRight = hardwareMap.get(DcMotor.class,"rb");
-        backLeft = hardwareMap.get(DcMotor.class,"lb");
-
-        navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("navx"),
-                NAVX_DIM_I2C_PORT,
-                AHRS.DeviceDataType.kProcessedData,
-                NAVX_DEVICE_UPDATE_RATE_HZ);
-
-        backRight.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        /* If possible, use encoders when driving, as it results in more */
-        /* predicatable drive system response.  */
+    public void resetEncoders(){
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
 
+    public void runUsingEncoders() {
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-
-
-        /* Create a PID Controller which uses the Yaw Angle as input. */
-        yawPIDController = new navXPIDController( navx_device,
-                                    navXPIDController.navXTimestampedDataSource.YAW);
-
-        /* Configure the PID controller */
-        yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
-        yawPIDController.setContinuous(true);
-        yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
-        yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
-        yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
-        yawPIDController.enable(true);
-
-        waitForStart();
-
-        /* reset the navX-Model device yaw angle so that whatever direction */
-        /* it is currently pointing will be zero degrees.                   */
-
-        navx_device.zeroYaw();
-
-        /* Wait for new Yaw PID output values, then update the motors
-           with the new PID value with each new output value.
-         */
-
-        final double TOTAL_RUN_TIME_SECONDS = 10.0;
-        navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
-
-        /* Drive straight forward at 1/2 of full drive speed */
-        encoderDrive(0.05, 15);
     }
+
 }
