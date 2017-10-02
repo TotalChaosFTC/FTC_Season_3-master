@@ -46,8 +46,8 @@ public class navXRotateToAnglePIDOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        leftMotor = hardwareMap.dcMotor.get("left_drive");
-        rightMotor = hardwareMap.dcMotor.get("right_drive");
+        leftMotor = hardwareMap.dcMotor.get("lf");
+        rightMotor = hardwareMap.dcMotor.get("rf");
 
         navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("dim"),
                 NAVX_DIM_I2C_PORT,
@@ -105,4 +105,5 @@ public class navXRotateToAnglePIDOp extends LinearOpMode {
             }
         }
     }
+
 }
