@@ -31,7 +31,7 @@ import java.io.InterruptedIOException;
  * to reduce the frequency of the updates to the drive system.
  */
 @Autonomous(name="StraightLineDrive", group="SDV")
-public class navXDriveStraightPIDOp extends LinearOpMode {
+public class navXDriveStraightPIDOp extends AutoBase {
     DcMotor backLeft;
     DcMotor backRight;
     DcMotor frontLeft;
@@ -67,115 +67,7 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
 
 
 
-    public void encoderDrive(double speed, double inches) {
-        int newLeftTarget;
-        int newRightTarget;
 
-        // Ensure that the opmode is still active
-        if (opModeIsActive()) {
-
-            // Determine new target position, and pass to motor controller
-            newLeftTarget = frontLeft.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-            newRightTarget = frontRight.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-            frontLeft.setTargetPosition(newLeftTarget);
-            frontRight.setTargetPosition(newRightTarget);
-
-            // Turn On RUN_TO_POSITION
-            frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            try {
-                frontLeft.setPower(speed);
-                frontRight.setPower(speed);
-                backLeft.setPower(speed);
-                backRight.setPower(speed);
-            }
-            catch (NullPointerException e){
-                frontLeft.setPower(speed);
-                frontRight.setPower(speed);
-                backLeft.setPower(speed);
-                backRight.setPower(speed);
-            }
-
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
-
-            while (opModeIsActive() && (frontLeft.isBusy() && frontRight.isBusy())) {
-                try {
-                    if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
-                        if ( yawPIDResult.isOnTarget() ) {
-                            telemetry.addData("I am on target","");
-                            telemetry.update();
-                            frontLeft.setPower(speed);
-                            telemetry.addData("front left power ",frontLeft.getPower());
-                            frontRight.setPower(speed);
-                            telemetry.addData("front left power ",frontRight.getPower());
-                            telemetry.update();
-                            backLeft.setPower(speed);
-                            backRight.setPower(speed);
-                        } else {
-                            telemetry.addData("I am off target","");
-                            telemetry.update();
-                            double output = yawPIDResult.getOutput();
-                            if ( output < 0 ) {
-                            /* Rotate Left */
-                                frontLeft.setPower(speed - output);
-                                telemetry.addData("front left power ",frontLeft.getPower());
-                                frontRight.setPower(speed + output);
-                                telemetry.addData("front left power ",frontRight.getPower());
-                                telemetry.update();
-                                backLeft.setPower(speed - output);
-                                backRight.setPower(speed + output);
-                            } else {
-                            /* Rotate Right */
-                                frontLeft.setPower(speed + output);
-                                telemetry.addData("front left power ",frontLeft.getPower());
-                                frontRight.setPower(speed - output);
-                                telemetry.addData("front left power ",frontRight.getPower());
-                                telemetry.update();
-                                backLeft.setPower(speed + output);
-                                backRight.setPower(speed - output);
-                            }
-                        }
-                    } else {
-                    /* A timeout occurred */
-                        Log.w("navXRotateToAnglePIDOp", "Yaw PID waitForNewUpdate() TIMEOUT.");
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                // Display it for the driver.
-                telemetry.addData("Path1",  "Running to %7d :%7d", newLeftTarget,  newRightTarget);
-                telemetry.addData("Path2",  "Running at %7d :%7d",
-                        frontLeft.getCurrentPosition(),
-                        frontRight.getCurrentPosition());
-                telemetry.update();
-            }
-
-            // Stop all motion;
-            frontLeft.setPower(0);
-            frontRight.setPower(0);
-            backLeft.setPower(0);
-            backRight.setPower(0);
-
-            // Turn off RUN_TO_POSITION
-            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            //  sleep(250);   // optional pause after each move
-        }
-    }
     @Override
     public void runOpMode() throws InterruptedException {
         frontRight = hardwareMap.get(DcMotor.class,"rf");
@@ -190,22 +82,10 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
 
         backRight.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.REVERSE);
-        /* If possible, use encoders when driving, as it results in more */
-        /* predicatable drive system response.  */
-        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        resetEncoders();
+        runUsingEncoders();
 
-
-
-
-        /* Create a PID Controller which uses the Yaw Angle as input. */
         yawPIDController = new navXPIDController( navx_device,
                                     navXPIDController.navXTimestampedDataSource.YAW);
 
@@ -219,19 +99,12 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
 
         waitForStart();
 
-        /* reset the navX-Model device yaw angle so that whatever direction */
-        /* it is currently pointing will be zero degrees.                   */
 
         navx_device.zeroYaw();
-
-        /* Wait for new Yaw PID output values, then update the motors
-           with the new PID value with each new output value.
-         */
 
         final double TOTAL_RUN_TIME_SECONDS = 10.0;
         navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
-        /* Drive straight forward at 1/2 of full drive speed */
         encoderDrive(0.05, 15);
     }
 }
