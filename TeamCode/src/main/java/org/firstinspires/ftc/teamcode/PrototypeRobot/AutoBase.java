@@ -6,13 +6,8 @@ import com.kauailabs.navx.ftc.AHRS;
 import com.kauailabs.navx.ftc.navXPIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import java.io.InterruptedIOException;
 
 /*
  * An example linear op mode where the robot will drive in
@@ -29,7 +24,7 @@ import java.io.InterruptedIOException;
  * to reduce the frequency of the updates to the drive system.
  */
 @Autonomous(name="StraightLineDrive", group="SDV")
-public class navXDriveStraightPIDOp extends LinearOpMode {
+public class AutoBase extends LinearOpMode {
     DcMotor backLeft;
     DcMotor backRight;
     DcMotor frontLeft;
@@ -64,7 +59,27 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
             (WHEEL_DIAMETER_INCHES * 3.1415);
 
 
+    public void setLeftPower (double power){
+        try {
+            frontLeft.setPower(power);
+            backLeft.setPower(power);
+        }
+        catch (NullPointerException e){
+            frontLeft.setPower(power);
+            backLeft.setPower(power);
+        }
+    }
+    public void setRightPower(double power){
+        try {
+            frontRight.setPower(power);
+            backRight.setPower(power);
+        }
+        catch (NullPointerException e){
+            frontRight.setPower(power);
+            backRight.setPower(power);
+        }
 
+    }
     public void encoderDrive(double speed, double inches) {
         int newLeftTarget;
         int newRightTarget;
@@ -84,18 +99,10 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
 
             // reset the timeout time and start motion.
             runtime.reset();
-            try {
-                frontLeft.setPower(speed);
-                frontRight.setPower(speed);
-                backLeft.setPower(speed);
-                backRight.setPower(speed);
-            }
-            catch (NullPointerException e){
-                frontLeft.setPower(speed);
-                frontRight.setPower(speed);
-                backLeft.setPower(speed);
-                backRight.setPower(speed);
-            }
+
+            setLeftPower(speed);
+            setRightPower(speed);
+
 
 
             // keep looping while we are still active, and there is time left, and both motors are running.
@@ -110,37 +117,20 @@ public class navXDriveStraightPIDOp extends LinearOpMode {
                 try {
                     if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
                         if ( yawPIDResult.isOnTarget() ) {
-                            telemetry.addData("I am on target","");
-                            telemetry.update();
-                            frontLeft.setPower(speed);
-                            telemetry.addData("front left power ",frontLeft.getPower());
-                            frontRight.setPower(speed);
-                            telemetry.addData("front left power ",frontRight.getPower());
-                            telemetry.update();
-                            backLeft.setPower(speed);
-                            backRight.setPower(speed);
+                            setLeftPower(speed);
+                            setRightPower(speed);
+
                         } else {
-                            telemetry.addData("I am off target","");
-                            telemetry.update();
                             double output = yawPIDResult.getOutput();
                             if ( output < 0 ) {
                             /* Rotate Left */
-                                frontLeft.setPower(speed - output);
-                                telemetry.addData("front left power ",frontLeft.getPower());
-                                frontRight.setPower(speed + output);
-                                telemetry.addData("front left power ",frontRight.getPower());
-                                telemetry.update();
-                                backLeft.setPower(speed - output);
-                                backRight.setPower(speed + output);
+                                setLeftPower(speed - output);
+                                setRightPower(speed + output);
+
                             } else {
                             /* Rotate Right */
-                                frontLeft.setPower(speed + output);
-                                telemetry.addData("front left power ",frontLeft.getPower());
-                                frontRight.setPower(speed - output);
-                                telemetry.addData("front left power ",frontRight.getPower());
-                                telemetry.update();
-                                backLeft.setPower(speed + output);
-                                backRight.setPower(speed - output);
+                                setLeftPower(speed - output);
+                                setRightPower(speed + output);
                             }
                         }
                     } else {
