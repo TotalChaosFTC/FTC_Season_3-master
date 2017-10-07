@@ -21,15 +21,15 @@
  THE SOFTWARE.
  ===============================================
  */
- package com.kauailabs.navx.ftc;
+ package org.firstinspires.ftc.teamcode.navx.ftc;
 
 import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.kauailabs.navx.AHRSProtocol;
-import com.kauailabs.navx.IMUProtocol;
-import com.kauailabs.navx.IMURegisters;
+import org.firstinspires.ftc.teamcode.navx.AHRSProtocol;
+import org.firstinspires.ftc.teamcode.navx.IMUProtocol;
+import org.firstinspires.ftc.teamcode.navx.IMURegisters;
 
 import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.I2cAddr;

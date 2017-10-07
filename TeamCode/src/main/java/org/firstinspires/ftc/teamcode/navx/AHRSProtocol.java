@@ -22,7 +22,7 @@
  ===============================================
  */
 
-package com.kauailabs.navx;
+package org.firstinspires.ftc.teamcode.navx;
 
 
 public class AHRSProtocol extends IMUProtocol {

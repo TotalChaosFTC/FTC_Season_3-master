@@ -3,15 +3,12 @@ package org.firstinspires.ftc.teamcode.PrototypeRobot;
 import android.util.Log;
 
 //import com.kauailabs.navx.ftc.TimestampedPIDController;
-import com.kauailabs.navx.ftc.navXPIDController;
+import org.firstinspires.ftc.teamcode.navx.ftc.navXPIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
 
-import com.kauailabs.navx.ftc.AHRS;
+import org.firstinspires.ftc.teamcode.navx.ftc.AHRS;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import java.text.DecimalFormat;
 
 /*
  * An example linear op mode where the robot will rotate

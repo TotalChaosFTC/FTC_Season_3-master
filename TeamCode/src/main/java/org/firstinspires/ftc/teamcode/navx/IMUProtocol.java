@@ -21,7 +21,7 @@
  THE SOFTWARE.
  ===============================================
  */
-package com.kauailabs.navx;
+package org.firstinspires.ftc.teamcode.navx;
 
 public class IMUProtocol {
 

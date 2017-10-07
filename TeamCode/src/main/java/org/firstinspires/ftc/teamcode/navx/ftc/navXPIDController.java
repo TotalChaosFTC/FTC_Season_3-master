@@ -21,11 +21,7 @@
  THE SOFTWARE.
  ===============================================
  */
-package com.kauailabs.navx.ftc;
-
-import android.util.Log;
-
-import java.security.Timestamp;
+package org.firstinspires.ftc.teamcode.navx.ftc;
 
 /**
  * The navXPIDController implements a timestamped PID controller (designed to deal

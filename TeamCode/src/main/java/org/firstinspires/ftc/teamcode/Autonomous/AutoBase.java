@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import android.util.Log;
 
-import com.kauailabs.navx.ftc.AHRS;
-import com.kauailabs.navx.ftc.navXPIDController;
+import org.firstinspires.ftc.teamcode.navx.ftc.AHRS;
+import org.firstinspires.ftc.teamcode.navx.ftc.navXPIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -23,7 +23,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * the default update rate (50Hz), which may be lowered in order
  * to reduce the frequency of the updates to the drive system.
  */
-@Autonomous(name="StraightLineDrive", group="SDV")
 abstract public class AutoBase extends LinearOpMode {
     DcMotor backLeft;
     DcMotor backRight;
@@ -60,30 +59,60 @@ abstract public class AutoBase extends LinearOpMode {
 
 
     public void setLeftPower (double power){
-        try {
-            frontLeft.setPower(power);
-            backLeft.setPower(power);
-        }
-        catch (NullPointerException e){
-            frontLeft.setPower(power);
-            backLeft.setPower(power);
+        int counter = 0;
+        boolean nullFlag = true;
+        while (counter < 5 && nullFlag) {
+            try {
+                frontLeft.setPower(power);
+                backLeft.setPower(power);
+                nullFlag = false;
+            } catch (NullPointerException e) {
+                counter++;
+            }
         }
     }
     public void setRightPower(double power){
-        try {
-            frontRight.setPower(power);
-            backRight.setPower(power);
-        }
-        catch (NullPointerException e){
-            frontRight.setPower(power);
-            backRight.setPower(power);
+        int counter = 0;
+        boolean nullFlag = true;
+        while (counter < 5 && nullFlag) {
+            try {
+                frontRight.setPower(power);
+                backRight.setPower(power);
+                nullFlag = false;
+            } catch (NullPointerException e) {
+                counter++;
+            }
         }
 
     }
-    public void encoderDrive(double speed, double inches) {
+    /*public void initializeNavX(){
+
+        yawPIDController = new navXPIDController( navx_device,
+                navXPIDController.navXTimestampedDataSource.YAW);
+        yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
+        yawPIDController.setContinuous(true);
+        yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
+        yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
+        yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
+        yawPIDController.enable(true);
+
+
+    }*/
+    public void encoderDrive(double speed, double inches/*, navXPIDController.PIDResult yawPIDResult*/) {
         int newLeftTarget;
         int newRightTarget;
+        /*yawPIDController = new navXPIDController( navx_device,
+                navXPIDController.navXTimestampedDataSource.YAW);
+         */
 
+        /* Configure the PID controller */
+        /*yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
+        yawPIDController.setContinuous(true);
+        yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
+        yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
+        yawPIDController.enable(true);
+        */
+        //navx_device.zeroYaw();
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
@@ -103,10 +132,9 @@ abstract public class AutoBase extends LinearOpMode {
             setLeftPower(speed);
             setRightPower(speed);
 
-            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
             while (opModeIsActive() && (frontLeft.isBusy() && frontRight.isBusy())) {
-                try {
+                /*try {
                     if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
                         if ( yawPIDResult.isOnTarget() ) {
                             setLeftPower(speed);
@@ -115,18 +143,15 @@ abstract public class AutoBase extends LinearOpMode {
                         } else {
                             double output = yawPIDResult.getOutput();
                             if ( output < 0 ) {
-                            /* Rotate Left */
                                 setLeftPower(speed - output);
                                 setRightPower(speed + output);
 
                             } else {
-                            /* Rotate Right */
                                 setLeftPower(speed - output);
                                 setRightPower(speed + output);
                             }
                         }
                     } else {
-                    /* A timeout occurred */
                         Log.w("navXRotateToAnglePIDOp", "Yaw PID waitForNewUpdate() TIMEOUT.");
                     }
                 } catch (InterruptedException e) {
@@ -138,7 +163,7 @@ abstract public class AutoBase extends LinearOpMode {
                 telemetry.addData("Path2",  "Running at %7d :%7d",
                         frontLeft.getCurrentPosition(),
                         frontRight.getCurrentPosition());
-                telemetry.update();
+                telemetry.update();*/
             }
 
             // Stop all motion;
@@ -148,81 +173,60 @@ abstract public class AutoBase extends LinearOpMode {
             backRight.setPower(0);
 
             // Turn off RUN_TO_POSITION
-            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            runUsingEncoders();
 
             //  sleep(250);   // optional pause after each move
         }
     }
-    public void econderTurn(double angle, double speed) throws InterruptedException {
-        DcMotor leftMotor;
-        DcMotor rightMotor;
-            leftMotor = hardwareMap.dcMotor.get("lf");
-            rightMotor = hardwareMap.dcMotor.get("rf");
+    /*public void encoderTurn(double angle, double speed, navXPIDController.PIDResult yawPIDResult) throws InterruptedException {
+        /*yawPIDController = new navXPIDController( navx_device,
+                navXPIDController.navXTimestampedDataSource.YAW);
+        yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
+        yawPIDController.setContinuous(true);
+        yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
+        yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
+        yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
+        yawPIDController.enable(true);
 
-            navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("dim"),
-                    NAVX_DIM_I2C_PORT,
-                    AHRS.DeviceDataType.kProcessedData);
 
-            rightMotor.setDirection(DcMotor.Direction.REVERSE);
-
-        /* If possible, use encoders when driving, as it results in more */
-        /* predicatable drive system response.                           */
-            leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        /* Create a PID Controller which uses the Yaw Angle as input. */
-            yawPIDController = new navXPIDController( navx_device,
-                    navXPIDController.navXTimestampedDataSource.YAW);
-
-        /* Configure the PID controller */
-            yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
-            yawPIDController.setContinuous(true);
-            yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
-            //yawPIDController.setTolerance(TimestampedPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
-            yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
-            yawPIDController.enable(true);
-
-            waitForStart();
-
-        /* Wait for new Yaw PID output values, then update the motors
-           with the new PID value with each new output value.
-         */
-
-            final double TOTAL_RUN_TIME_SECONDS = 30.0;
-            int DEVICE_TIMEOUT_MS = 500;
-            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
-
-            while ( runtime.time() < TOTAL_RUN_TIME_SECONDS ) {
-                if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
-                    if ( yawPIDResult.isOnTarget() ) {
-                        leftMotor.setPower(speed);
-                        rightMotor.setPower(speed);
-                    } else {
-                        double output = yawPIDResult.getOutput();
-                        if ( output < 0 ) {
-                        /* Rotate Left */
-                            leftMotor.setPower(-output);
-                            rightMotor.setPower(output);
-                        } else {
-                        /* Rotate Right */
-                            leftMotor.setPower(output);
-                            rightMotor.setPower(-output);
-                        }
-                    }
+        navx_device.zeroYaw();
+        double yaw = navx_device.getYaw();
+        while ( yaw != angle) {
+            if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
+                if ( yawPIDResult.isOnTarget() ) {
+                    setLeftPower(-speed);
+                    setRightPower(speed);
                 } else {
-			          /* A timeout occurred */
-                    Log.w("navXRotateToAnglePIDOp", "Yaw PID waitForNewUpdate() TIMEOUT.");
+                    double output = yawPIDResult.getOutput();
+                    if ( output < 0 ) {
+                        setLeftPower(-output);
+                        setRightPower(output);
+                    } else {
+                        setLeftPower(output);
+                        setRightPower(-output);
+                    }
                 }
+            } else {
+                Log.w("navXRotateToAnglePIDOp", "Yaw PID waitForNewUpdate() TIMEOUT.");
+            }
+            yaw = navx_device.getYaw();
+        }
+    }*/
+    public void resetEncoders(){
+        int counter = 0;
+        boolean nullFlag = true;
+        while (counter < 5 && nullFlag) {
+            try {
+                frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                nullFlag = false;
+            } catch (NullPointerException e) {
+                counter++;
             }
         }
-    public void resetEncoders(){
-        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
     }
 
     public void runUsingEncoders() {
@@ -232,4 +236,10 @@ abstract public class AutoBase extends LinearOpMode {
         backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+    public void runToPosition() {
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
 }

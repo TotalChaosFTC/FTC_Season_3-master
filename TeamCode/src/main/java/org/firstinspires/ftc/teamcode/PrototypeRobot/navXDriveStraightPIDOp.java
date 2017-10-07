@@ -1,20 +1,12 @@
 package org.firstinspires.ftc.teamcode.PrototypeRobot;
 
-import android.util.Log;
-
-import com.kauailabs.navx.ftc.AHRS;
-import com.kauailabs.navx.ftc.navXPIDController;
+import org.firstinspires.ftc.teamcode.navx.ftc.AHRS;
+import org.firstinspires.ftc.teamcode.navx.ftc.navXPIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Autonomous.AutoBase;
-
-import java.io.InterruptedIOException;
 
 /*
  * An example linear op mode where the robot will drive in
@@ -40,12 +32,12 @@ public class navXDriveStraightPIDOp extends AutoBase {
     /* This is the port on the Core Device Interace Module        */
     /* in which the navX-Model Device is connected.  Modify this  */
     /* depending upon which I2C port you are using.               */
-    private final int NAVX_DIM_I2C_PORT = 0;
-    private AHRS navx_device;
-    private ElapsedTime runtime = new ElapsedTime();
+    //private final int NAVX_DIM_I2C_PORT = 0;
+    //private AHRS navx_device;
+    //private ElapsedTime runtime = new ElapsedTime();
 
     //navx values
-    private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
+    //private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
 
     private final double TARGET_ANGLE_DEGREES = 90.0;
     private final double TOLERANCE_DEGREES = 2.0;
@@ -69,15 +61,28 @@ public class navXDriveStraightPIDOp extends AutoBase {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        frontRight = hardwareMap.get(DcMotor.class,"rf");
-        frontLeft = hardwareMap.get(DcMotor.class,"lf");
-        backRight = hardwareMap.get(DcMotor.class,"rb");
-        backLeft = hardwareMap.get(DcMotor.class,"lb");
+        int counter = 0;
+        boolean nullFlag = true;
+        while (counter < 5 && nullFlag) {
+            try {
+                frontRight = hardwareMap.get(DcMotor.class, "rf");
+                frontLeft = hardwareMap.get(DcMotor.class, "lf");
+                backRight = hardwareMap.get(DcMotor.class, "rb");
+                backLeft = hardwareMap.get(DcMotor.class, "lb");
 
-        navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("navx"),
-                NAVX_DIM_I2C_PORT,
-                AHRS.DeviceDataType.kProcessedData,
-                NAVX_DEVICE_UPDATE_RATE_HZ);
+                /*navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("navx"),
+                        NAVX_DIM_I2C_PORT,
+                        AHRS.DeviceDataType.kProcessedData,
+                        NAVX_DEVICE_UPDATE_RATE_HZ);
+                        */
+                nullFlag = false;
+            } catch (NullPointerException e) {
+                counter++;
+            }
+        }
+
+
+
 
         backRight.setDirection(DcMotor.Direction.REVERSE);
         frontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -90,12 +95,12 @@ public class navXDriveStraightPIDOp extends AutoBase {
         waitForStart();
 
 
-        initializeNavX();
+        //initializeNavX();
         final double TOTAL_RUN_TIME_SECONDS = 10.0;
 
-        navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
+        //navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
-        encoderDrive(0.5, 15, yawPIDResult);
-        encoderTurn(90,0.5, yawPIDResult);
+        encoderDrive(0.5, 15);//,yawPIDResult);
+        //encoderTurn(90,0.5, yawPIDResult);
     }
 }
