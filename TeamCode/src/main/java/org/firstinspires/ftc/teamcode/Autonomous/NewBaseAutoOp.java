@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorMRRangeSensor;
 import org.firstinspires.ftc.teamcode.navx.ftc.AHRS;
 import org.firstinspires.ftc.teamcode.navx.ftc.navXPIDController;
 
@@ -26,13 +28,14 @@ public abstract class NewBaseAutoOp extends OpMode {
     DcMotor leftBack;
     DcMotor rightBack;
     DcMotor armTwist;
+    SensorMRRangeSensor rangeSensor;
     private final int NAVX_DIM_I2C_PORT = 0;
     private AHRS navx_device;
     private navXPIDController yawPIDController;
     private ElapsedTime runtime = new ElapsedTime();
     //navx values
     private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
-    private final double TARGET_ANGLE_DEGREES = 0.0;
+    private final double TARGET_ANGLE_DEGREES = 90.0;
     private final double TOLERANCE_DEGREES = 2.0;
     private final double MIN_MOTOR_OUTPUT_VALUE = -1.0;
     private final double MAX_MOTOR_OUTPUT_VALUE = 1.0;
@@ -59,7 +62,7 @@ public abstract class NewBaseAutoOp extends OpMode {
     final static int MOVE = 1;
     final static int RIGHT = 2;
     final static int LEFT = 3;
-    final static int MOVEARM = 4;
+    final static int RANGE = 4;
     final static int WAITFORTOUCH = 5;
     final static int BACK = 6;
     final static int BLUE = 7;
@@ -156,17 +159,17 @@ public abstract class NewBaseAutoOp extends OpMode {
         rightFront = hardwareMap.dcMotor.get("rf");
         leftBack = hardwareMap.dcMotor.get("lb");
         rightBack = hardwareMap.dcMotor.get("rb");
+        rangeSensor = hardwareMap.get(SensorMRRangeSensor.class, "rgn");
         navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("navx"),
                 NAVX_DIM_I2C_PORT,
                 AHRS.DeviceDataType.kProcessedData,
                 NAVX_DEVICE_UPDATE_RATE_HZ);
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
-        leftFront.setDirection(DcMotor.Direction.REVERSE);
         steps = new Vector<Step>();
         initSteps();
         currentStep = steps.get(0);
         currentStepIndex = 0;
     }
+// Create all doubles for sensors ect..
 
     public abstract void initSteps();
     @Override
@@ -210,6 +213,7 @@ public abstract class NewBaseAutoOp extends OpMode {
                 }
             }
             else {
+                setMotorPower(currentStep.leftPower, currentStep.rightPower);
                 navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
                 try {
                     if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
@@ -219,13 +223,9 @@ public abstract class NewBaseAutoOp extends OpMode {
                         } else {
                             double output = yawPIDResult.getOutput();
                             if ( output < 0 ) {
-                                currentStep.leftPower = currentStep.leftPower + output;
-                                currentStep.rightPower = currentStep.rightPower - output;
-                                setMotorPower(currentStep.leftPower, currentStep.rightPower);
+                                setMotorPower(currentStep.leftPower - output, currentStep.rightPower + output);
                             } else {
-                                currentStep.leftPower = currentStep.leftPower - output;
-                                currentStep.rightPower = currentStep.rightPower + output;
-                                setMotorPower(currentStep.leftPower, currentStep.rightPower);
+                                setMotorPower(currentStep.leftPower + output, currentStep.rightPower - output);
 
                             }
                         }
@@ -236,9 +236,14 @@ public abstract class NewBaseAutoOp extends OpMode {
                 catch(InterruptedException e){
 
                 }
+
             }
         }
         else if (state == FINISHED){
+            leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         }
 
