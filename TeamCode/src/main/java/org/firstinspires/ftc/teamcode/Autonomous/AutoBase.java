@@ -85,7 +85,7 @@ abstract public class AutoBase extends LinearOpMode {
         }
 
     }
-    /*public void initializeNavX(){
+    public void initializeNavX(){
 
         yawPIDController = new navXPIDController( navx_device,
                 navXPIDController.navXTimestampedDataSource.YAW);
@@ -97,22 +97,22 @@ abstract public class AutoBase extends LinearOpMode {
         yawPIDController.enable(true);
 
 
-    }*/
+    }
     public void encoderDrive(double speed, double inches/*, navXPIDController.PIDResult yawPIDResult*/) {
         int newLeftTarget;
         int newRightTarget;
-        /*yawPIDController = new navXPIDController( navx_device,
+        yawPIDController = new navXPIDController( navx_device,
                 navXPIDController.navXTimestampedDataSource.YAW);
-         */
+
 
         /* Configure the PID controller */
-        /*yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
+        yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
         yawPIDController.setContinuous(true);
         yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
         yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
         yawPIDController.enable(true);
-        */
-        //navx_device.zeroYaw();
+
+        navx_device.zeroYaw();
         // Ensure that the opmode is still active
         if (opModeIsActive()) {
 
@@ -156,14 +156,14 @@ abstract public class AutoBase extends LinearOpMode {
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
 
                 // Display it for the driver.
                 telemetry.addData("Path1",  "Running to %7d :%7d", newLeftTarget,  newRightTarget);
                 telemetry.addData("Path2",  "Running at %7d :%7d",
                         frontLeft.getCurrentPosition(),
                         frontRight.getCurrentPosition());
-                telemetry.update();*/
+                telemetry.update();
             }
 
             // Stop all motion;

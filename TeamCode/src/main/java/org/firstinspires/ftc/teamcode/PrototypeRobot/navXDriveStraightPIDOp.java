@@ -98,7 +98,7 @@ public class navXDriveStraightPIDOp extends AutoBase {
         //initializeNavX();
         final double TOTAL_RUN_TIME_SECONDS = 10.0;
 
-        //navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
+        navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
         encoderDrive(0.5, 15);//,yawPIDResult);
         //encoderTurn(90,0.5, yawPIDResult);
