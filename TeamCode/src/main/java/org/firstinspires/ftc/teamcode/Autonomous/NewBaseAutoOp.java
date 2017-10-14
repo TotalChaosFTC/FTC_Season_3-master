@@ -28,14 +28,13 @@ public abstract class NewBaseAutoOp extends OpMode {
     DcMotor leftBack;
     DcMotor rightBack;
     DcMotor armTwist;
-    SensorMRRangeSensor rangeSensor;
     private final int NAVX_DIM_I2C_PORT = 0;
     private AHRS navx_device;
     private navXPIDController yawPIDController;
     private ElapsedTime runtime = new ElapsedTime();
     //navx values
     private final byte NAVX_DEVICE_UPDATE_RATE_HZ = 50;
-    private final double TARGET_ANGLE_DEGREES = 90.0;
+    private final double TARGET_ANGLE_DEGREES = -45.0;
     private final double TOLERANCE_DEGREES = 2.0;
     private final double MIN_MOTOR_OUTPUT_VALUE = -1.0;
     private final double MAX_MOTOR_OUTPUT_VALUE = 1.0;
@@ -54,6 +53,7 @@ public abstract class NewBaseAutoOp extends OpMode {
     final static int FINISHED = 3;
     final static int WAITFORCOLOR = 4;
     final static int WAITFORTURN = 5;
+    final static int TURNTOANGLE = 6;
     int state = ATREST;
     final static int ENCODER_CPR = 1120;
     final static double GEAR_RATIO = 1;
@@ -81,8 +81,9 @@ public abstract class NewBaseAutoOp extends OpMode {
         public int leftCounts;
         public int sweeperDirection;
         public double armPosition;
+        public double turnAngle;
         public int sType;
-        public Step(double dist, double left, double right, int stepType, int direction) {
+        public Step(double dist, double left, double right, int stepType, int direction, int angle) {
             distance = dist;
             sType = stepType;
             initializeNavX();
@@ -94,6 +95,7 @@ public abstract class NewBaseAutoOp extends OpMode {
                 rightPower = right;
             }
             else if (stepType == RIGHT) {
+                turnAngle = angle;
                 rightCounts = convertDistance(distance);
                 leftCounts = rightCounts;
                 leftPower = -left;
@@ -101,6 +103,7 @@ public abstract class NewBaseAutoOp extends OpMode {
 
             }
             else if(stepType == LEFT){
+                turnAngle = angle;
                 rightCounts = convertDistance(distance);
                 leftCounts = rightCounts;
                 leftPower = left;
@@ -159,7 +162,6 @@ public abstract class NewBaseAutoOp extends OpMode {
         rightFront = hardwareMap.dcMotor.get("rf");
         leftBack = hardwareMap.dcMotor.get("lb");
         rightBack = hardwareMap.dcMotor.get("rb");
-        rangeSensor = hardwareMap.get(SensorMRRangeSensor.class, "rgn");
         navx_device = AHRS.getInstance(hardwareMap.deviceInterfaceModule.get("navx"),
                 NAVX_DIM_I2C_PORT,
                 AHRS.DeviceDataType.kProcessedData,
@@ -237,6 +239,44 @@ public abstract class NewBaseAutoOp extends OpMode {
 
                 }
 
+            }
+        }
+        else if (state == TURNTOANGLE){
+            yawPIDController = new navXPIDController( navx_device,
+                    navXPIDController.navXTimestampedDataSource.YAW);
+            yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
+            yawPIDController.setContinuous(true);
+            yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
+            yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
+            yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
+            yawPIDController.enable(true);
+
+
+            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
+
+            navx_device.zeroYaw();
+
+            double yaw = navx_device.getYaw();
+            while ( yaw != currentStep.turnAngle) {
+                try {
+                    if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
+                        if ( yawPIDResult.isOnTarget() ) {
+                            setMotorPower(currentStep.leftPower,currentStep.rightPower);
+                        } else {
+                            double output = yawPIDResult.getOutput();
+                            if ( output < 0 ) {
+                                setMotorPower(-output, output);
+                            } else {
+                                setMotorPower(output,-output);
+                            }
+                        }
+                    } else {
+                        Log.w("navXRotateToAnglePIDOp", "Yaw PID waitForNewUpdate() TIMEOUT.");
+                    }
+                } catch (InterruptedException e) {
+
+                }
+                yaw = navx_device.getYaw();
             }
         }
         else if (state == FINISHED){
