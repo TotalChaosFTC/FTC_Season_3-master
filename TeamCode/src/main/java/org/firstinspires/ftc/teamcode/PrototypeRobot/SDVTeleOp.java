@@ -79,7 +79,7 @@ public class SDVTeleOp extends OpMode {
     public DcMotor lb;
     //public DcMotor gr;
     //public DcMotor gl;
-    public Servo grab1;
+    public Servo jk;
     public Servo grab2;
     public Servo grab3;
     public Servo grab4;
@@ -92,7 +92,7 @@ public class SDVTeleOp extends OpMode {
         rf = hardwareMap.get(DcMotor.class, "rf");
         lb = hardwareMap.get(DcMotor.class, "lb");
         rb = hardwareMap.get(DcMotor.class, "rb");
-
+        jk = hardwareMap.get(Servo.class , "jk");
     }
 
     /*
@@ -100,6 +100,7 @@ public class SDVTeleOp extends OpMode {
      */
     @Override
     public void init_loop() {
+        jk.setPosition(0);
     }
 
     /*
@@ -124,6 +125,16 @@ public class SDVTeleOp extends OpMode {
         lb.setPower(leftJoy);
         rf.setPower(rightJoy);
         rb.setPower(rightJoy);
+
+        if(gamepad1.a){
+            jk.setPosition(-1);
+        }
+        else if(gamepad1.y){
+            jk.setPosition(1);
+        }
+        else{
+            jk.setPosition(0);
+        }
 
         telemetry.update();
 
