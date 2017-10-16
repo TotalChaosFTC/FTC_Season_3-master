@@ -57,7 +57,7 @@ public abstract class NewBaseAutoOp extends OpMode {
     int state = ATREST;
     final static int ENCODER_CPR = 1120;
     final static double GEAR_RATIO = 1;
-    final static double WHEEL_DIAMETER = 2.75;
+    final static double WHEEL_DIAMETER = 3.6;
     final static double CIRCUMFERENCE = Math.PI * WHEEL_DIAMETER;
     final static int MOVE = 1;
     final static int RIGHT = 2;
@@ -86,8 +86,6 @@ public abstract class NewBaseAutoOp extends OpMode {
         public Step(double dist, double left, double right, int stepType, int direction, int angle) {
             distance = dist;
             sType = stepType;
-            initializeNavX();
-            navx_device.zeroYaw();
             if (stepType == MOVE){
                 rightCounts = convertDistance(distance);
                 leftCounts = rightCounts;
@@ -154,6 +152,7 @@ public abstract class NewBaseAutoOp extends OpMode {
         yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
         yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
         yawPIDController.enable(true);
+        navx_device.zeroYaw();
 
     }
     public void init()
@@ -192,9 +191,17 @@ public abstract class NewBaseAutoOp extends OpMode {
                 else{
                     counts = counts+1;                }
             }
-            else {
+            else if (currentStep.sType ==  MOVE || currentStep.sType == BACK){
                 resetEncoders();
                 state = WAITFORRESETENCODERS;
+                initializeNavX();
+
+            }
+            else if (currentStep.sType == RIGHT || currentStep.sType == LEFT){
+                state = TURNTOANGLE;
+                initializeNavX();
+                setMotorPower(currentStep.leftPower,currentStep.rightPower);
+
             }
         }
         else if( state == WAITFORRESETENCODERS) {
@@ -242,27 +249,16 @@ public abstract class NewBaseAutoOp extends OpMode {
             }
         }
         else if (state == TURNTOANGLE){
-            yawPIDController = new navXPIDController( navx_device,
-                    navXPIDController.navXTimestampedDataSource.YAW);
-            yawPIDController.setSetpoint(TARGET_ANGLE_DEGREES);
-            yawPIDController.setContinuous(true);
-            yawPIDController.setOutputRange(MIN_MOTOR_OUTPUT_VALUE, MAX_MOTOR_OUTPUT_VALUE);
-            yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, TOLERANCE_DEGREES);
-            yawPIDController.setPID(YAW_PID_P, YAW_PID_I, YAW_PID_D);
-            yawPIDController.enable(true);
-
 
             navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
 
-            navx_device.zeroYaw();
-
             double yaw = navx_device.getYaw();
-            while ( yaw != currentStep.turnAngle) {
+            if (Math.abs(yaw - currentStep.turnAngle) >= 2) {
+                telemetry.addData("Current yaw: ", yaw);
+                telemetry.update();
                 try {
                     if ( yawPIDController.waitForNewUpdate(yawPIDResult, DEVICE_TIMEOUT_MS ) ) {
-                        if ( yawPIDResult.isOnTarget() ) {
-                            setMotorPower(currentStep.leftPower,currentStep.rightPower);
-                        } else {
+                        if (!yawPIDResult.isOnTarget() ) {
                             double output = yawPIDResult.getOutput();
                             if ( output < 0 ) {
                                 setMotorPower(-output, output);
@@ -276,8 +272,18 @@ public abstract class NewBaseAutoOp extends OpMode {
                 } catch (InterruptedException e) {
 
                 }
-                yaw = navx_device.getYaw();
             }
+            else {
+                setMotorPower(0,0);
+                currentStepIndex = currentStepIndex + 1;
+                if (currentStepIndex >= steps.size()) {
+                    state = FINISHED;
+                } else {
+                    currentStep = steps.get(currentStepIndex);
+                    state = ATREST;
+                }
+            }
+
         }
         else if (state == FINISHED){
             leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
