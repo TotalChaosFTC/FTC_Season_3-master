@@ -65,13 +65,12 @@ public abstract class NewBaseAutoOp extends OpMode {
     final static int RANGE = 4;
     final static int WAITFORTOUCH = 5;
     final static int BACK = 6;
-    final static int BLUE = 7;
-    final static int RED = 8;
     final static int WAIT = 9;
     final static int MOVEPUSHER = 10;
     final static int FORWARD = 11;
     final static int BACKWARD = 12;
     final static int NONE = 13;
+    final static int VUFORIA = 14;
 
     public class Step {
         public double distance;
@@ -98,7 +97,6 @@ public abstract class NewBaseAutoOp extends OpMode {
                 leftCounts = rightCounts;
                 leftPower = -left;
                 rightPower = right;
-
             }
             else if(stepType == LEFT){
                 turnAngle = angle;
@@ -108,18 +106,6 @@ public abstract class NewBaseAutoOp extends OpMode {
                 rightPower = -right;
             }
             else if(stepType == BACK){
-                rightCounts = convertDistance(distance);
-                leftCounts = rightCounts;
-                leftPower = -left;
-                rightPower = -right;
-            }
-            else if(stepType == BLUE){
-                rightCounts = convertDistance(distance);
-                leftCounts = rightCounts;
-                leftPower = -left;
-                rightPower = -right;
-            }
-            else if(stepType == RED){
                 rightCounts = convertDistance(distance);
                 leftCounts = rightCounts;
                 leftPower = -left;
@@ -306,8 +292,7 @@ public abstract class NewBaseAutoOp extends OpMode {
         leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
-
-
+    
     public boolean areEncodersReset() {
         return leftFront.getCurrentPosition() == 0 &&
                 rightFront.getCurrentPosition() == 0 &&
