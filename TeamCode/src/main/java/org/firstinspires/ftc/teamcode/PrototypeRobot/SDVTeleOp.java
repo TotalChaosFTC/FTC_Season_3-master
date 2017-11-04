@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -80,6 +81,7 @@ public class SDVTeleOp extends OpMode {
     //public DcMotor gr;
     //public DcMotor gl;
     public Servo jk;
+    public ColorSensor cs;
     public Servo grab2;
     public Servo grab3;
     public Servo grab4;
@@ -93,6 +95,7 @@ public class SDVTeleOp extends OpMode {
         lb = hardwareMap.get(DcMotor.class, "lb");
         rb = hardwareMap.get(DcMotor.class, "rb");
         jk = hardwareMap.get(Servo.class , "jk");
+        cs = hardwareMap.get(ColorSensor.class , "cs");
     }
 
     /*
@@ -101,6 +104,7 @@ public class SDVTeleOp extends OpMode {
     @Override
     public void init_loop() {
         jk.setPosition(0);
+
     }
 
     /*
@@ -130,12 +134,9 @@ public class SDVTeleOp extends OpMode {
             jk.setPosition(-1);
         }
         else if(gamepad1.y){
-            jk.setPosition(1);
+            jk.setPosition(0.7);
         }
-        else{
-            jk.setPosition(0);
-        }
-
+        telemetry.addData("Color sensor ", "Blue %d Red %d" , cs.blue(), cs.red());
         telemetry.update();
 
         // Pause for 40 mS each cycle = update 25 times a second.
